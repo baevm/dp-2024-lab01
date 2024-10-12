@@ -2,10 +2,11 @@ namespace SingletonLogger;
 
 public sealed class Logger
 {
-    private static StreamWriter Writer = new StreamWriter(Console.OpenStandardOutput());
+    private static StreamWriter _Writer = new StreamWriter(Console.OpenStandardOutput());
+    private static readonly Mutex _Mutex = new Mutex();
 
     // вызывается при загрузке класса в память
-    private static Logger _instance = new Logger();
+    private static readonly Logger _instance = new Logger();
     public static Logger Instance
     {
         get
@@ -18,21 +19,22 @@ public sealed class Logger
 
     public static void SetOutput(StreamWriter streamWriter)
     {
-        Writer = streamWriter;
+        _Mutex.WaitOne();
+        _Writer = streamWriter;
+        _Mutex.ReleaseMutex();
     }
 
     private void LogWithLevel(LogLevel level, string message)
     {
+        _Mutex.WaitOne();
+
         var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        Writer.WriteLine($"{date} [{level}] {message}");
-        Writer.Flush();
+        _Writer.WriteLine($"{date} [{level}] {message}");
+        _Writer.Flush();
+
+        _Mutex.ReleaseMutex();
     }
 
-    public void Logln(string message)
-    {
-        Writer.WriteLine(message);
-        Writer.Flush();
-    }
 
     public void LogTrace(string message)
     {
