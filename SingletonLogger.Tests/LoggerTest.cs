@@ -21,7 +21,7 @@ public class LoggerTest
         var mockStringWriter = new MemoryStream();
         var streamWriter = new StreamWriter(mockStringWriter);
 
-        Logger.SetOutput(streamWriter);
+        Logger.SetOutputStrategy(streamWriter);
 
         var expected = "Hello world!";
         var instance1 = Logger.Instance;
@@ -40,7 +40,7 @@ public class LoggerTest
         var mockStringWriter = new MemoryStream();
         var streamWriter = new StreamWriter(mockStringWriter);
 
-        Logger.SetOutput(streamWriter);
+        Logger.SetOutputStrategy(streamWriter);
 
         var numOfThreads = 5;
         var countdown = new CountdownEvent(numOfThreads);
