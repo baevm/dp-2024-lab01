@@ -5,49 +5,36 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        LogWithThreadingToFile();
+        LogToFileWithUppercase();
     }
 
-    static void LogWithThreadingToConsole()
+    static void LogToConsole()
     {
-        var numOfThreads = 5;
-        var countdown = new CountdownEvent(numOfThreads);
-
-        for (int i = 0; i < numOfThreads; i++)
-        {
-            new Thread(delegate ()
-            {
-                var logger = Logger.Instance;
-                logger.LogTrace($"trace log from thread {Thread.CurrentThread.ManagedThreadId}");
-                countdown.Signal();
-            }).Start();
-        }
-
-        countdown.Wait();
-        Logger.Instance.LogInfo("Finished");
+        var logger = Logger.Instance;
+        logger.LogInfo("hello world");
     }
 
-    static void LogWithThreadingToFile()
+    static void LogToFile()
     {
         var fileName = $"DP.P1.{DateTime.Now.ToString("yyyy-MM-dd.HH-mm-ss")}.log";
         var logFile = new StreamWriter(fileName);
-        Logger.SetOutput(logFile);
 
+        Logger.SetOutputStrategy(logFile);
 
-        var numOfThreads = 5;
-        var countdown = new CountdownEvent(numOfThreads);
+        var logger = Logger.Instance;
+        logger.LogInfo("hello world");
+    }
 
-        for (int i = 0; i < numOfThreads; i++)
-        {
-            new Thread(delegate ()
-            {
-                var logger = Logger.Instance;
-                logger.LogTrace($"trace log from thread {Thread.CurrentThread.ManagedThreadId}");
-                countdown.Signal();
-            }).Start();
-        }
+    static void LogToFileWithUppercase()
+    {
+        var fileName = $"DP.P1.{DateTime.Now.ToString("yyyy-MM-dd.HH-mm-ss")}.log";
+        var logFileStrategy = new StreamWriter(fileName);
+        var uppercaseLogStrategy = new UppercaseMessageStrategy();
 
-        countdown.Wait();
-        Logger.Instance.LogInfo("Finished");
+        Logger.SetOutputStrategy(logFileStrategy);
+        Logger.SetMessageCaseStrategy(uppercaseLogStrategy);
+
+        var logger = Logger.Instance;
+        logger.LogInfo("hello world");
     }
 }

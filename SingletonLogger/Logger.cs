@@ -1,8 +1,12 @@
 namespace SingletonLogger;
 
+
 public sealed class Logger
 {
-    private static StreamWriter _Writer = new StreamWriter(Console.OpenStandardOutput());
+    private static StreamWriter _streamWriter = new StreamWriter(Console.OpenStandardOutput());
+    private static IMessageCaseStrategy _logStrategy = new LowercaseMessageStrategy();
+    private static IFormatDateStrategy _formatDateStrategy = new DateWithTimeStrategy();
+
     private static readonly Mutex _Mutex = new Mutex();
 
     // вызывается при загрузке класса в память
@@ -17,10 +21,36 @@ public sealed class Logger
 
     private Logger() { }
 
-    public static void SetOutput(StreamWriter streamWriter)
+    /// <summary>
+    /// Стратегия вывода логгера
+    /// </summary>
+    /// <param name="streamWriter"></param>
+    public static void SetOutputStrategy(StreamWriter streamWriter)
     {
         _Mutex.WaitOne();
-        _Writer = streamWriter;
+        _streamWriter = streamWriter;
+        _Mutex.ReleaseMutex();
+    }
+
+    /// <summary>
+    /// Стратегия сообщения логгера
+    /// </summary>
+    /// <param name="logStrategy"></param>
+    public static void SetMessageCaseStrategy(IMessageCaseStrategy logStrategy)
+    {
+        _Mutex.WaitOne();
+        _logStrategy = logStrategy;
+        _Mutex.ReleaseMutex();
+    }
+
+    /// <summary>
+    /// Стратегия для даты в лог сообщениях
+    /// </summary>
+    /// <param name="formatDateStrategy"></param>
+    public static void SetFormatDateStrategy(IFormatDateStrategy formatDateStrategy)
+    {
+        _Mutex.WaitOne();
+        _formatDateStrategy = formatDateStrategy;
         _Mutex.ReleaseMutex();
     }
 
@@ -28,9 +58,8 @@ public sealed class Logger
     {
         _Mutex.WaitOne();
 
-        var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        _Writer.WriteLine($"{date} [{level}] {message}");
-        _Writer.Flush();
+        var date = _formatDateStrategy.GetDate();
+        _logStrategy.Log(date, level, message, _streamWriter);
 
         _Mutex.ReleaseMutex();
     }

@@ -15,13 +15,13 @@ public class LoggerTest
     }
 
     [Fact]
-    public void Test_Logger_Println()
+    public void Test_Logger_LogInfo()
     {
         /* mocks */
         var mockStringWriter = new MemoryStream();
         var streamWriter = new StreamWriter(mockStringWriter);
 
-        Logger.SetOutput(streamWriter);
+        Logger.SetOutputStrategy(streamWriter);
 
         var expected = "Hello world!";
         var instance1 = Logger.Instance;
@@ -34,13 +34,45 @@ public class LoggerTest
     }
 
     [Fact]
+    public void Test_Logger_Switch_MessageCaseStrategy_In_Runtime()
+    {
+        /* mocks */
+        var mockStringWriter = new MemoryStream();
+        var streamWriter = new StreamWriter(mockStringWriter);
+
+        #region Запись lowercase
+        Logger.SetOutputStrategy(streamWriter);
+
+        var message = "hello world";
+        var logger = Logger.Instance;
+
+        logger.LogInfo(message);
+
+        var actual = Encoding.UTF8.GetString(mockStringWriter.ToArray());
+
+        Assert.Contains(message, actual);
+        mockStringWriter.Position = 0;
+        mockStringWriter.SetLength(0);
+        #endregion
+
+        #region Запись uppercase
+        Logger.SetMessageCaseStrategy(new UppercaseMessageStrategy());
+
+        logger.LogInfo(message);
+
+        var actualUpperCase = Encoding.UTF8.GetString(mockStringWriter.ToArray());
+        Assert.Contains(message.ToUpper(), actualUpperCase);
+        #endregion
+    }
+
+    [Fact]
     public void Test_Logger_Thread_Safe()
     {
         /* mocks */
         var mockStringWriter = new MemoryStream();
         var streamWriter = new StreamWriter(mockStringWriter);
 
-        Logger.SetOutput(streamWriter);
+        Logger.SetOutputStrategy(streamWriter);
 
         var numOfThreads = 5;
         var countdown = new CountdownEvent(numOfThreads);
