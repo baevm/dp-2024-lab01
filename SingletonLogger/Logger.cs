@@ -4,7 +4,7 @@ namespace SingletonLogger;
 public sealed class Logger
 {
     private static StreamWriter _streamWriter = new StreamWriter(Console.OpenStandardOutput());
-    private static IMessageCaseStrategy _logStrategy = new LowercaseMessageStrategy();
+    private static IFormatMessageStrategy _formatMessageStrategy = new LowercaseMessageStrategy();
     private static IFormatDateStrategy _formatDateStrategy = new DateWithTimeStrategy();
 
     private static readonly Mutex _Mutex = new Mutex();
@@ -22,7 +22,7 @@ public sealed class Logger
     private Logger() { }
 
     /// <summary>
-    /// Стратегия вывода логгера
+    /// Стратегия вывода логов
     /// </summary>
     /// <param name="streamWriter"></param>
     public static void SetOutputStrategy(StreamWriter streamWriter)
@@ -33,18 +33,18 @@ public sealed class Logger
     }
 
     /// <summary>
-    /// Стратегия сообщения логгера
+    /// Стратегия форматирования сообщения в логах
     /// </summary>
     /// <param name="logStrategy"></param>
-    public static void SetMessageCaseStrategy(IMessageCaseStrategy logStrategy)
+    public static void SetMessageCaseStrategy(IFormatMessageStrategy logStrategy)
     {
         _Mutex.WaitOne();
-        _logStrategy = logStrategy;
+        _formatMessageStrategy = logStrategy;
         _Mutex.ReleaseMutex();
     }
 
     /// <summary>
-    /// Стратегия для даты в лог сообщениях
+    /// Стратегия форматирования даты в лог сообщениях
     /// </summary>
     /// <param name="formatDateStrategy"></param>
     public static void SetFormatDateStrategy(IFormatDateStrategy formatDateStrategy)
@@ -59,7 +59,10 @@ public sealed class Logger
         _Mutex.WaitOne();
 
         var date = _formatDateStrategy.GetDate();
-        _logStrategy.Log(date, level, message, _streamWriter);
+        var logMessage = _formatMessageStrategy.FormatMessage(date, level, message);
+
+        _streamWriter.WriteLine(logMessage);
+        _streamWriter.Flush();
 
         _Mutex.ReleaseMutex();
     }

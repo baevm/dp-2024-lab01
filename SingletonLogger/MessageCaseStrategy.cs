@@ -1,26 +1,22 @@
-using System;
-
 namespace SingletonLogger;
 
-public interface IMessageCaseStrategy
+public interface IFormatMessageStrategy
 {
-    void Log(string date, LogLevel level, string message, StreamWriter writer);
+    string FormatMessage(string date, LogLevel level, string message);
 }
 
-public class UppercaseMessageStrategy : IMessageCaseStrategy
+public class UppercaseMessageStrategy : IFormatMessageStrategy
 {
-    public void Log(string date, LogLevel level, string message, StreamWriter writer)
+    public string FormatMessage(string date, LogLevel level, string message)
     {
-        writer.WriteLine($"{date} [{level}] {message.ToUpper()}");
-        writer.Flush();
+        return $"{date} [{level}] {message.ToUpper()}";
     }
 }
 
-public class LowercaseMessageStrategy : IMessageCaseStrategy
+public class LowercaseMessageStrategy : IFormatMessageStrategy
 {
-    public void Log(string date, LogLevel level, string message, StreamWriter writer)
+    public string FormatMessage(string date, LogLevel level, string message)
     {
-        writer.WriteLine($"{date} [{level}] {message}");
-        writer.Flush();
+        return $"{date} [{level}] {message}";
     }
 }
